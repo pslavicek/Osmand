@@ -1,0 +1,131 @@
+#!/bin/bash
+
+osmdir="./osm"
+
+if [ "$#" -eq 1 ]; then
+	location=$1;
+else
+	PS3="Enter a location: "
+	select location in World_basemap Czech-republic_europe Czech-republic_jihovychod Czech-republic_jihozapad_europe Czech-republic_moravskoslezsko_europe Czech-republic_praha_europe Czech-republic_severovychod_europe Czech-republic_severozapad_europe Czech-republic_stredni-cechy_europe Czech-republic_stredni-morava_europe
+	do
+		echo "$0 $location"
+		break;
+	done
+fi;
+
+function goExit {
+	local status=$1
+	local message=${2}
+	echo "Error ${2} (Status=$status)" >&2
+	exit $status
+}
+
+function ETag {
+	local headerfile=$(mktemp /tmp/dump-ETag.XXXXXX)
+	curl --silent --head --dump-header ${headerfile} --location "${1}" > /dev/null
+	cat "${headerfile}" >&2
+	local etag=$(cat "${headerfile}" | grep ETag)
+	local st=$?
+	rm "${headerfile}" >&2
+	test -z "${etag}" && return 4;
+	echo $etag
+}
+
+function checkETag {
+	# Exit status
+	#	0: ETag equals
+	#	1: ETag not equals
+	#	2: file with ETag not exists
+	local url=$1;
+	local fileETags="${osmdir}/.${location}.etag";
+	#echo "fileETags = ${fileETags}"
+	test -e "${fileETags}" || return 2;
+	wwwETag=$(ETag "${1}" 2>/dev/null || return $?)
+	test -z "${wwwETag}" && return 4;
+	#echo "  wwwETag = ${wwwETag}"
+	cat "${fileETags}" 2>/dev/null | grep "${wwwETag}" >/dev/null || return 2
+	return 0;
+}
+
+
+
+
+#tmpfile=$(mktemp /tmp/${location,,}.XXXXXX)
+
+
+function download {
+	url=$1
+	local ETagfile="${osmdir}/.${location}.etag"
+	local filename=${url//\&file\=/\/}
+	filename=${filename/#*\//} 
+
+	local headerfile=$(mktemp /tmp/$filename-header.XXXXXX)
+	#echo "Downloading... $filename"
+	curl --silent --dump-header ${headerfile} --location -o "${osmdir}/${filename}" "${1}"
+	cat "${headerfile}" | grep "200 OK" >/dev/null || return 99;
+	if [ $? -ne 0 ]; then
+		echo "Bad download" >&2
+		cat "${headerfile}" >&2
+		rm "${osmdir}/${filename}"
+		rm "${headerfile}"
+		return 99		;
+	fi;
+	#echo "Write ETag ${ETagfile}"
+	echo -ne "${filename}\t" >> ${ETagfile}
+	cat "${headerfile}" | grep ETag >> ${ETagfile}
+	lastmodified=$(cat "${headerfile}" | grep "Last-Modified" | cut -d':' -f2,3,4 | date +'%F %r')
+	rm "${headerfile}"
+	extension="${filename##*.}"
+	newfilename="${filename%.*}"
+	test -e "${osmdir}/${newfilename}"
+	ex=$?
+	# Uncompressed
+	case $extension in
+		gz)
+			gunzip -f "${osmdir}/${filename}"
+			;;
+		zip)
+			unzip -o -d "${osmdir}/" "${osmdir}/${filename}" && rm "${osmdir}/${filename}"
+			;;
+		*)
+			echo "Unknown compress"
+			return 3;
+			;;
+	esac
+	test ${ex} -eq 0 && echo "${newfilename%.*} UPDATED $lastmodified"
+	test ${ex} -eq 0 || echo "${newfilename%.*} NEW";
+}
+
+download_main="https://download.osmand.net/download?standard=yes&file=${location}_2.obf.zip"
+test -e "${osmdir}/${location}_2.obf" && checkETag "${download_main}" "${location}"
+if [ $? -ne 0 ]; then
+	rm -v "${osmdir}/.${location}.etag" 2>/dev/null
+	download "${download_main}"
+	status=$?
+	if [ ${status} -eq 0 ]; then
+		for inc in $(seq --format %02g 0 99); do
+			partlocation="${location}_"$(date +%y_%m)"_${inc}.obf"
+			rm -v "${osmdir}/${partlocation}" 2>/dev/null || break;
+		done;
+	fi;
+else
+	echo "${location} is ACTUAL"
+fi;
+for inc in $(seq --format %02g 0 31); do
+	partlocation="${location}_"$(date +%y_%m)"_${inc}"
+	download_part="https://download.osmand.net/aosmc/"${location,,}"/${partlocation}.obf.gz"
+	#echo "Check $partlocation"
+	checkETag "${download_part}" "${partlocation}"
+	status=$?
+	if [ $status -eq 0 ]; then
+		test -e "${osmdir}/${partlocation}.obf" || status=1;
+	fi;
+	if [ $status -eq 0 ]; then
+		echo "${partlocation} is ACTUAL"
+	elif [ $status -eq 4 ]; then
+		break;
+	else
+		download "${download_part}" "${partlocation}"
+	fi;
+done
+echo -en "\n"
