@@ -1,0 +1,10 @@
+#!/bin/bash
+rm ~/osmand/obf/Ralsko_2.obf
+
+memgen="-Xms256M -Xmx2560M"
+inspgen="-Xms256M -Xmx1024M"
+javaparams="-Djava.util.logging.config.file=logging.properties"
+javalibs="./OsmAndMapCreator.jar:./lib/OsmAnd-core.jar:./lib/*.jar"
+
+java ${javaparams} ${memgen} -cp "${javalibs}" net.osmand.data.index.IndexBatchCreator ./batch.xml && \
+java ${javaparams} ${inspgen} -cp "${javalibs}" net.osmand.binary.BinaryInspector -v -vpoi ~/osmand/obf/Ralsko_2.obf
