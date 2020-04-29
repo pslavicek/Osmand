@@ -1,9 +1,9 @@
 #!/bin/bash
-test -e "./variables" && ./variables
+test -e "./variables" && source ./variables
 
-osmmemory=${osmmemory:-"-Xms256M -Xmx1024M"}
-osmproxy=${osmproxy:-"-DsocksProxyHost=vl10387.pre.cz -DsocksProxyPort=3306"}
+osmmemory=${osmmemory:-"-Xms512M -Xmx2048M"}
+osmproxy=${osmproxy:-""}
 osmtimeout=${osmtimeout:-"-Dsun.net.client.defaultConnectTimeout=2500 -Dsun.net.client.defaultReadTimeout=2500"}
 osmlibrary=${osmlibrary:-"-cp \"./OsmAndMapCreator.jar:./lib/OsmAnd-core.jar:./lib/*.jar:./lib-gl/*.jar\""}
 
-java ${memory} ${proxy} ${timeout} ${library} net.osmand.swing.OsmExtractionUI
+echo java ${osmmemory} ${osmproxy} ${osmtimeout} ${osmlibrary} net.osmand.swing.OsmExtractionUI

@@ -1,0 +1,4 @@
+#!/bin/bash
+
+url="https://raw.githubusercontent.com/osmandapp/OsmAnd-resources/master/rendering_styles/default.render.xml"
+curl -o rendering/`basename $url` "$url"

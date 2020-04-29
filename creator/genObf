@@ -2,7 +2,7 @@
 
 script=$(basename $0)
 
-test -e "./.$script.pre" || echo -e "#!/bin/bash\necho \"# pre-run script\"" > ./.$script.pre && chmod a+x ./.$script.pre
+test -e "./.$script.pre" || echo -e "#!/bin/bash\necho \"# pre-run script\"" > source ./.$script.pre && chmod a+x ./.$script.pre
 test -e "./.$script.pre" && ./.$script.pre
 
 test -e "./variables" && ./variables
@@ -17,6 +17,6 @@ osmmemory=${osmmemory:-"-Xms256M -Xmx1024M"}
 echo java ${osmmemory} ${osmproxy} ${osmtimeout} ${osmlibrary} net.osmand.data.index.IndexBatchCreator ${1:-./batch.xml}
 if [ $? -eq 0 ]; then
 	test -e "./.$script.post" || echo -e "#!/bin/bash\necho \"# post-run script\"" > ./.$script.post && chmod a+x ./.$script.post
-	test -e "./.$script.post" && ./.$script.post
+	test -e "./.$script.post" && source ./.$script.post
 fi
 #java ${memory} ${proxy} ${timeout} ${library} net.osmand.binary.BinaryInspector -v -vpoi ~/osmand/obf/Ralsko_2.obf

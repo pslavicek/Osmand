@@ -1,0 +1,6 @@
+#!/bin/bash
+
+url="http://download.osmand.net/latest-night-build/OsmAndMapCreator-main.zip"
+curl -o /tmp/OsmAndMapCreator-main.zip "$url"
+unzip /tmp/OsmAndMapCreator-main.zip -d "/opt/OsmAndMapCreator"
+rm -vf /tmp/OsmAndMapCreator-main.zip
