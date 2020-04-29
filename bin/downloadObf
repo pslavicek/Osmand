@@ -1,6 +1,8 @@
 #!/bin/bash
 
-osmdir="./obf"
+osmdir=${osmdir:-"./obf"}
+
+test -e $osmdir || mkdir -p ${osmdir}
 
 if [ "$#" -eq 1 ]; then
 	location=$1;
