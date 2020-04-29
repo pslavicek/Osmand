@@ -1,8 +1,9 @@
 #!/bin/bash
-library="-cp \"./OsmAndMapCreator.jar:./lib/OsmAnd-core.jar:./lib/*.jar:./lib-gl/*.jar\""
-timeout="-Dsun.net.client.defaultConnectTimeout=2500 -Dsun.net.client.defaultReadTimeout=2500"
-proxy="-DsocksProxyHost=vl10387.pre.cz -DsocksProxyPort=3306"
-loging="-Djava.util.logging.config.file=logging.properties"
-memory="-Xms64M -Xmx720M"
-java ${loging} ${memory} ${proxy} ${timeout} ${library} net.osmand.swing.OsmExtractionUI
+test -e "./variables" && ./variables
 
+osmmemory=${osmmemory:-"-Xms256M -Xmx1024M"}
+osmproxy=${osmproxy:-"-DsocksProxyHost=vl10387.pre.cz -DsocksProxyPort=3306"}
+osmtimeout=${osmtimeout:-"-Dsun.net.client.defaultConnectTimeout=2500 -Dsun.net.client.defaultReadTimeout=2500"}
+osmlibrary=${osmlibrary:-"-cp \"./OsmAndMapCreator.jar:./lib/OsmAnd-core.jar:./lib/*.jar:./lib-gl/*.jar\""}
+
+java ${memory} ${proxy} ${timeout} ${library} net.osmand.swing.OsmExtractionUI

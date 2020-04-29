@@ -1,10 +1,22 @@
 #!/bin/bash
-rm ~/osmand/obf/Ralsko_2.obf
 
-memgen="-Xms256M -Xmx2560M"
-inspgen="-Xms256M -Xmx1024M"
-javaparams="-Djava.util.logging.config.file=logging.properties"
-javalibs="./OsmAndMapCreator.jar:./lib/OsmAnd-core.jar:./lib/*.jar"
+script=$(basename $0)
 
-java ${javaparams} ${memgen} -cp "${javalibs}" net.osmand.data.index.IndexBatchCreator ./batch.xml && \
-java ${javaparams} ${inspgen} -cp "${javalibs}" net.osmand.binary.BinaryInspector -v -vpoi ~/osmand/obf/Ralsko_2.obf
+test -e "./.$script.pre" || echo -e "#!/bin/bash\necho \"# pre-run script\"" > ./.$script.pre && chmod a+x ./.$script.pre
+test -e "./.$script.pre" && ./.$script.pre
+
+test -e "./variables" && ./variables
+
+exit 1
+
+osmlibrary=${osmlibrary:-"-cp \"./OsmAndMapCreator.jar:./lib/OsmAnd-core.jar:./lib/*.jar:./lib-gl/*.jar\""}
+osmtimeout=${osmtimeout:-"-Dsun.net.client.defaultConnectTimeout=2500 -Dsun.net.client.defaultReadTimeout=2500"}
+osmproxy=${osmproxy:-"-DsocksProxyHost=vl10387.pre.cz -DsocksProxyPort=3306"}
+osmmemory=${osmmemory:-"-Xms256M -Xmx1024M"}
+
+echo java ${osmmemory} ${osmproxy} ${osmtimeout} ${osmlibrary} net.osmand.data.index.IndexBatchCreator ${1:-./batch.xml}
+if [ $? -eq 0 ]; then
+	test -e "./.$script.post" || echo -e "#!/bin/bash\necho \"# post-run script\"" > ./.$script.post && chmod a+x ./.$script.post
+	test -e "./.$script.post" && ./.$script.post
+fi
+#java ${memory} ${proxy} ${timeout} ${library} net.osmand.binary.BinaryInspector -v -vpoi ~/osmand/obf/Ralsko_2.obf
