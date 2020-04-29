@@ -2,3 +2,4 @@
 .*.pre
 .*.post
 rendering/default.render.xml
+variables
