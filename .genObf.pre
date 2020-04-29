@@ -1,0 +1,5 @@
+#!/bin/bash
+for file in obf/*_2.obf; do
+	echo "$file" | grep -v -E '(europe|basemap).*_2.obf$' 1>/dev/null && \
+		rm -v $file 2>/dev/null
+done
