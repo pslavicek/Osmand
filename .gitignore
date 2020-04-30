@@ -1,9 +1,11 @@
 *~
+**/*.log*
 .*.pre
 .*.post
 variables
 batch.xml
 
 rendering/
+!rendering/rendering_mytypes.xml
 obf/
 osm/
