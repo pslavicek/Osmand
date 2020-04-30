@@ -1,4 +1,12 @@
 #!/bin/bash
 
-url="https://raw.githubusercontent.com/osmandapp/OsmAnd-resources/master/rendering_styles/default.render.xml"
-curl -o rendering/`basename $url` "$url"
+function download {
+	local url=$1;
+	local file=$(basename $url)
+	echo "$file downloading..."
+	curl -o rendering/$file "$url"
+}
+
+
+download "https://raw.githubusercontent.com/osmandapp/OsmAnd-resources/master/rendering_styles/default.render.xml"
+download "https://raw.githubusercontent.com/osmandapp/OsmAnd-resources/master/obf_creation/rendering_types.xml"

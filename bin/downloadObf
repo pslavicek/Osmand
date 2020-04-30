@@ -1,5 +1,6 @@
 #!/bin/bash
 
+test -e "./variables" && source ./variables
 osmdir=${osmdir:-"./obf"}
 
 test -e $osmdir || mkdir -p ${osmdir}

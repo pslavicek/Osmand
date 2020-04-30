@@ -2,6 +2,7 @@
 **/*.log*
 .*.pre
 .*.post
+*.poly
 variables
 batch.xml
 

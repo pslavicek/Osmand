@@ -1,0 +1,80 @@
+#!/bin/bash
+
+if [ $# -ne 1 ]; then
+	echo "$0 file.poly" >&2
+	exit 1;
+fi
+
+test -e "./variables" && source ./variables
+
+function floorset {
+	echo "$1*1000/10" | bc
+}
+
+function ceilset {
+	echo "($1*1000+10)/10" | bc
+}
+
+function divideset {
+	echo "scale=2; $1/100" | bc -l
+}
+
+polyfile=$1
+
+tmpfile=$(mktemp /tmp/`basename $1`.XXXXXX)
+cat $polyfile | sed --expression='s/\t/ /g' \
+	| sed --expression='s/   / /g' \
+	| sed --expression='s/   / /g' \
+	| sed --expression='s/   / /g' \
+	| sed --expression='s/  / /g' \
+	| sed --expression='s/  / /g' \
+	| sed --expression="s/ /\t/g" \
+	| grep -P "^\t" > ${tmpfile}
+lonmin=$(cat ${tmpfile} | cut -f 2 | sort -n | head -n 1)
+latmin=$(cat ${tmpfile} | cut -f 3 | sort -n | head -n 1)
+lonmax=$(cat ${tmpfile} | cut -f 2 | sort -rn | head -n 1)
+latmax=$(cat ${tmpfile} | cut -f 3 | sort -rn | head -n 1)
+rm -v ${tmpfile}
+
+
+lonminset=$(floorset ${lonmin})
+latminset=$(floorset ${latmin})
+lonmaxset=$(floorset ${lonmax})
+latmaxset=$(floorset ${latmax})
+
+echo "BBOX=${lonmin},${latmin},${lonmax},${latmax}"
+echo "BBOX=${lonminset},${latminset},${lonmaxset},${latmaxset}"
+
+osmpolyfile=`basename ${polyfile}`
+osmpolyfile="${osmdir}/${osmpolyfile%.*}.osm"
+rm -v ${osmpolyfile} 2>/dev/null
+#osmpolyfile="${filename##*.}"
+
+partial=2
+
+for y in $(seq $latminset ${partial} $latmaxset); do
+	echo -e "\ny=$y ****************"
+	for x in $(seq $lonminset ${partial} $lonmaxset); do
+		lon=$(divideset $x)
+		lonp=$(divideset $(($x+${partial})))
+		lat=$(divideset $y)
+		latp=$(divideset $(($y+${partial})))
+		file=`dirname ${tmpfile}`"/${x}_${y}.osm"
+		filep=`dirname ${tmpfile}`"/${x}_${y}p.osm"
+		echo -e "\nFile $file bbox=${lon},${lat},${lonp},${latp}"
+		test -e ${file} || wget -O ${file} "https://api.openstreetmap.org/api/0.6/map?bbox=${lon},${lat},${lonp},${latp}"
+		echo "osmconvert ${file} -B=${polyfile} > ${filep}"
+		#osmconvert ${file} -B=${polyfile} > ${filep} || exit 1
+		cp -v ${file} ${filep}
+		if [ -e "${osmpolyfile}" ]; then
+			mv -v "${osmpolyfile}" "${osmpolyfile%.*}p.osm"
+			echo "osmconvert ${filep} ${osmpolyfile%.*}p.osm > ${osmpolyfile}"
+			osmconvert ${filep} "${osmpolyfile%.*}p.osm" > "${osmpolyfile}" || exit 2
+			rm -v ${filep} ${osmpolyfile%.*}p.osm
+		else
+			mv -v "${filep}" "${osmpolyfile}"
+		fi
+		ls -l ${osmpolyfile}
+	done
+done
+#osmfilter osm/Hradčany.osm --keep="abandoned:*=" > osm/HradčanyF.osm
