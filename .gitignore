@@ -2,6 +2,8 @@
 .*.pre
 .*.post
 variables
+batch.xml
+
 rendering/
 obf/
 osm/
