@@ -1,0 +1,27 @@
+#!/bin/bash
+
+url="https://download.osmand.net/indexes.xml"
+
+test -e "./.variables" && source ./.variables
+
+file=$(mktemp /tmp/osmand-list.XXXXXX)".xml"
+
+if [ ! -e /tmp/osmand-downloads.xml ]; then
+	curl --silent "$url" > ${file}
+	mv $file /tmp/osmand-downloads.xml
+fi;
+file="/tmp/osmand-downloads.xml"
+csvfile="${file%.*}.csv"
+rm $csvfile 2>/dev/null
+#ls -la $file
+cat ${file} | grep Czech | grep "\"map\"" | cut -d'=' -f3,9-10 | while read line; do
+	line=$(echo "${line//\/>/}")
+	line=$(echo "${line//=/ }")
+	line=$(echo "${line//\"/}" | cut -d ' ' -f 1,3,5)
+	IFS=' ' read -r -a array <<< "$line"
+	ts=$((${array[2]}/1000))
+	ts=$(date -d @$ts +'%F %T')
+	echo -e "${array[0]} $ts ${array[1]}" >> "${csvfile}"
+done
+cat ${csvfile} | sort -rk 2
+rm ${csvfile} ${file}

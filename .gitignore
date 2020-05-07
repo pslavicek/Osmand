@@ -9,3 +9,4 @@ rendering/
 !rendering/rendering_mytypes.xml
 obf/
 osm/
+tiles/
