@@ -5,7 +5,7 @@ script=$(basename $0)
 test -e "./.$script.pre" || echo -e "#!/bin/bash\necho \"# pre-run script\"" > ./.$script.pre && chmod a+x ./.$script.pre
 test -e "./.$script.pre" && ./.$script.pre
 
-test -e "./variables" && source ./variables
+test -e "./.variables" && source ./.variables
 
 #osmlibrary=${osmlibrary:-"-cp \"./OsmAndMapCreator.jar:./lib/OsmAnd-core.jar:./lib/*.jar:./lib-gl/*.jar\""}
 #osmtimeout=${osmtimeout:-"-Dsun.net.client.defaultConnectTimeout=2500 -Dsun.net.client.defaultReadTimeout=2500"}

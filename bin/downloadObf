@@ -1,9 +1,9 @@
 #!/bin/bash
 
-test -e "./variables" && source ./variables
-osmdir=${osmdir:-"./obf"}
+test -e "./.variables" && source ./.variables
+obfdir=${obfdir:-"./obf"}
 
-test -e $osmdir || mkdir -p ${osmdir}
+test -e $obfdir || mkdir -p ${obfdir}
 
 if [ "$#" -eq 1 ]; then
 	location=$1;
@@ -40,7 +40,7 @@ function checkETag {
 	#	1: ETag not equals
 	#	2: file with ETag not exists
 	local url=$1;
-	local fileETags="${osmdir}/.${location}.etag";
+	local fileETags="${obfdir}/.${location}.etag";
 	#echo "fileETags = ${fileETags}"
 	test -e "${fileETags}" || return 2;
 	wwwETag=$(ETag "${1}" 2>/dev/null || return $?)
@@ -58,18 +58,18 @@ function checkETag {
 
 function download {
 	url=$1
-	local ETagfile="${osmdir}/.${location}.etag"
+	local ETagfile="${obfdir}/.${location}.etag"
 	local filename=${url//\&file\=/\/}
 	filename=${filename/#*\//} 
 
 	local headerfile=$(mktemp /tmp/$filename-header.XXXXXX)
 	#echo "Downloading... $filename"
-	curl --silent --dump-header ${headerfile} --location -o "${osmdir}/${filename}" "${1}"
+	curl --silent --dump-header ${headerfile} --location -o "${obfdir}/${filename}" "${1}"
 	cat "${headerfile}" | grep "200 OK" >/dev/null || return 99;
 	if [ $? -ne 0 ]; then
 		echo "Bad download" >&2
 		cat "${headerfile}" >&2
-		rm "${osmdir}/${filename}"
+		rm "${obfdir}/${filename}"
 		rm "${headerfile}"
 		return 99		;
 	fi;
@@ -80,15 +80,15 @@ function download {
 	rm "${headerfile}"
 	extension="${filename##*.}"
 	newfilename="${filename%.*}"
-	test -e "${osmdir}/${newfilename}"
+	test -e "${obfdir}/${newfilename}"
 	ex=$?
 	# Uncompressed
 	case $extension in
 		gz)
-			gunzip -f "${osmdir}/${filename}"
+			gunzip -f "${obfdir}/${filename}"
 			;;
 		zip)
-			unzip -o -d "${osmdir}/" "${osmdir}/${filename}" && rm "${osmdir}/${filename}"
+			unzip -o -d "${obfdir}/" "${obfdir}/${filename}" && rm "${obfdir}/${filename}"
 			;;
 		*)
 			echo "Unknown compress"
@@ -100,15 +100,15 @@ function download {
 }
 
 download_main="https://download.osmand.net/download?standard=yes&file=${location}_2.obf.zip"
-test -e "${osmdir}/${location}_2.obf" && checkETag "${download_main}" "${location}"
+test -e "${obfdir}/${location}_2.obf" && checkETag "${download_main}" "${location}"
 if [ $? -ne 0 ]; then
-	rm -v "${osmdir}/.${location}.etag" 2>/dev/null
+	rm -v "${obfdir}/.${location}.etag" 2>/dev/null
 	download "${download_main}"
 	status=$?
 	if [ ${status} -eq 0 ]; then
 		for inc in $(seq --format %02g 0 99); do
 			partlocation="${location}_"$(date +%y_%m)"_${inc}.obf"
-			rm -v "${osmdir}/${partlocation}" 2>/dev/null || break;
+			rm -v "${obfdir}/${partlocation}" 2>/dev/null || break;
 		done;
 	fi;
 else
@@ -121,7 +121,7 @@ for inc in $(seq --format %02g 0 31); do
 	checkETag "${download_part}" "${partlocation}"
 	status=$?
 	if [ $status -eq 0 ]; then
-		test -e "${osmdir}/${partlocation}.obf" || status=1;
+		test -e "${obfdir}/${partlocation}.obf" || status=1;
 	fi;
 	if [ $status -eq 0 ]; then
 		echo "${partlocation} is ACTUAL"

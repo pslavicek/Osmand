@@ -2,7 +2,7 @@
 **/*.log*
 .*.pre
 .*.post
-variables
+.variables
 batch.xml
 
 rendering/

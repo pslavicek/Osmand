@@ -5,7 +5,7 @@ if [ $# -ne 1 ]; then
 	exit 1;
 fi
 
-test -e "./variables" && source ./variables
+test -e "./.variables" && source ./.variables
 
 function floorset {
 	echo "$1*1000/10" | bc
@@ -63,9 +63,11 @@ for y in $(seq $latminset ${partial} $latmaxset); do
 		filep=`dirname ${tmpfile}`"/${x}_${y}p.osm"
 		echo -e "\nFile $file bbox=${lon},${lat},${lonp},${latp}"
 		test -e ${file} || wget -O ${file} "https://api.openstreetmap.org/api/0.6/map?bbox=${lon},${lat},${lonp},${latp}"
+		grep "Hradčanský potok" ${file}
 		echo "osmconvert ${file} -B=${polyfile} > ${filep}"
-		#osmconvert ${file} -B=${polyfile} > ${filep} || exit 1
-		cp -v ${file} ${filep}
+		osmconvert ${file} -B=${polyfile} > ${filep} || exit 1
+		grep "Hradčanský potok" ${filep}
+#		cp -v ${file} ${filep}
 		if [ -e "${osmpolyfile}" ]; then
 			mv -v "${osmpolyfile}" "${osmpolyfile%.*}p.osm"
 			echo "osmconvert ${filep} ${osmpolyfile%.*}p.osm > ${osmpolyfile}"
