@@ -6,11 +6,11 @@ test -e "./.variables" && source ./.variables
 
 file=$(mktemp /tmp/osmand-list.XXXXXX)".xml"
 
-if [ ! -e /tmp/osmand-downloads.xml ]; then
+#if [ ! -e /tmp/osmand-downloads.xml ]; then
 	curl --silent "$url" > ${file}
-	mv $file /tmp/osmand-downloads.xml
-fi;
-file="/tmp/osmand-downloads.xml"
+#	mv $file /tmp/osmand-downloads.xml
+#fi;
+#file="/tmp/osmand-downloads.xml"
 csvfile="${file%.*}.csv"
 rm $csvfile 2>/dev/null
 #ls -la $file
