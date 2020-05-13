@@ -146,6 +146,7 @@
 		<case minzoom="16" tag="natural" value="bare_rock" icon="natural_stone" shield="stone_shield">
 			<apply_if nightMode="true" shield=""/>
 		</case>
+		<case minzoom="12" tag="abandoned:airmark" value="beacon" icon="man_made_antenna" shield="antenna_shield"/>
 	</point>
 
 	<polygon>

@@ -12,9 +12,15 @@ test -e "./.variables" && source ./.variables
 #osmproxy=${osmproxy:-"-DsocksProxyHost=vl10387.pre.cz -DsocksProxyPort=3306"}
 #osmmemory=${osmmemory:-"-Xms256M -Xmx1024M"}
 
-java ${osmmemory} ${osmproxy} ${osmtimeout} ${osmlibrary} net.osmand.data.index.IndexBatchCreator ${1:-./batch.xml}
+index="net.osmand.data.index.IndexBatchCreator"
+index="net.osmand.util.IndexBatchCreator"
+
+java ${osmmemory} ${osmproxy} ${osmtimeout} ${osmlibrary} ${index} ${1:-./batch.xml}
+
 if [ $? -eq 0 ]; then
 	test -e "./.$script.post" || echo -e "#!/bin/bash\necho \"# post-run script\"" > ./.$script.post && chmod a+x ./.$script.post
 	test -e "./.$script.post" && source ./.$script.post
 fi
-java ${osmmemory} ${osmproxy} ${osmtimeout} ${osmlibrary} net.osmand.binary.BinaryInspector -v -vpoi ~/OsmandMap/obf/Ralsko_2.obf
+inspector="net.osmand.binary.BinaryInspector"
+inspector="net.osmand.obf.BinaryInspector"
+java ${osmmemory} ${osmproxy} ${osmtimeout} ${osmlibrary} ${inspector} -v -vpoi ~/Projekty/OsmandMap/obf/Hradčany_2.obf
