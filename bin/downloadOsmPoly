@@ -1,11 +1,15 @@
 #!/bin/bash
 
+type osmconvert >/dev/null 2>&1 || { echo -e >&2 "I require osmconvert but it's not installed.\nInstall:\tapt install osmctools\nhttps://wiki.openstreetmap.org/wiki/Osmconvert#Linux\nAborting."; exit 1; }
+
 if [ $# -ne 1 ]; then
 	echo "$0 file.poly" >&2
 	exit 1;
 fi
 
 test -e "./.variables" && source ./.variables
+
+test -d ${osmdir} || { echo -e >&2 "osmdir '${osmdir}' not found\n\tAborting."; exit 1; }
 
 function floorset {
 	echo "$1*1000/10" | bc

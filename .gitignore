@@ -4,6 +4,7 @@
 .*.post
 .variables
 batch.xml
+*.ocbf
 
 rendering/
 !rendering/rendering_mytypes.xml
